@@ -33,12 +33,15 @@ export default Vue.extend({
     keydown(e: KeyboardEvent) {
       const sel = document.getSelection()!;
       if (sel.anchorOffset === 0 && e.keyCode === 8 && sel.isCollapsed)  {
-        this.setType(Type.Paragraph);
+        if (this.type !== Type.Paragraph) {
+          this.setType(Type.Paragraph);
+        }
       }
+      (this.$refs.input as Node).normalize();
     },
     update(e: InputEvent) {
       this.content = (this.$refs.input as HTMLElement).innerHTML;
-      this.content = this.content.replace('&nbsp;', ' ');
+      this.content = this.content.replace('&nbsp;', ' ').replace(/^\s*/, '');
       if (this.content.slice(0, 2) === '# ') {
         this.content = this.content.slice(2);
         this.setType(Type.Header);
@@ -49,20 +52,32 @@ export default Vue.extend({
         this.content = this.content.substr(0, /(<br\\?>){3,}$/.exec(this.content)!.index);
         (this.$refs.input as HTMLElement).innerHTML = this.content;
         this.$emit('new');
+      } else if (/.*(<br\\?>)$/.test(this.content) && this.type !== Type.Paragraph) {
+        this.content = this.content.substr(0, /(<br\\?>)*$/.exec(this.content)!.index);
+        (this.$refs.input as HTMLElement).innerHTML = this.content;
+        this.$emit('new');
       }
     },
     setType(t: Type) {
-      let offset = document.getSelection()!.anchorOffset;
+      let offset = 0;
       if (t === Type.Paragraph) {
         if (this.type === Type.Header) {
           this.content = '#' + this.content;
-          offset += 1;
+          offset = 1;
+        } else if (this.type === Type.Header2) {
+          this.content = '##' + this.content;
+          offset = 2;
         }
       }
       this.type = t;
-      this.$nextTick(() => {
-          (this.$refs.input as HTMLElement).focus();
-      });
+      setTimeout(() => {
+        const el = this.$refs.input as HTMLElement;
+        el.focus();
+        setTimeout(() => {
+          const sel = window.getSelection();
+          sel.collapse(el.childNodes[0], offset);
+        }, 0);
+      }, 0);
     },
   },
 });

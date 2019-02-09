@@ -3,6 +3,10 @@
 </template>
 
 <style lang="sass">
+html
+  box-sizing: border-box
+*, *:before, *:after
+  box-sizing: inherit
 body
   margin: 0
   font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif
@@ -17,7 +21,7 @@ body
   --secondary-accent-color: #ab47bc
   --secondary-foreground-color: #f3e5f5
   --foreground-color: #333
-h1
+h1, h2
   font-weight: 600
 p
   line-height: 26px

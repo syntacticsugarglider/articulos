@@ -1,6 +1,6 @@
 <template lang="pug">
   .page
-    EditableContent(v-for="entry in content.entries()", @new="createNew", :key="entry[0]")
+    EditableContent(v-for="entry in content.entries()", @new="createNew(entry[0])", :key="entry[1][1]")
 </template>
 
 <script lang="ts">
@@ -13,12 +13,14 @@ export default Vue.extend({
   components: {EditableContent},
   data() {
     return {
-      content: [''],
+      content: [['', 1]],
+      accu: 1,
     };
   },
   methods: {
-    createNew() {
-      this.content.push('');
+    createNew(index: number) {
+      this.accu++;
+      this.content.splice(index + 1, 0, ['', this.accu]);
     },
   },
 });
