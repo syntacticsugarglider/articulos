@@ -35,6 +35,8 @@ export default Vue.extend({
       if (sel.anchorOffset === 0 && e.keyCode === 8 && sel.isCollapsed)  {
         if (this.type !== Type.Paragraph) {
           this.setType(Type.Paragraph);
+        } else {
+          this.$emit('destroy');
         }
       }
       (this.$refs.input as Node).normalize();
