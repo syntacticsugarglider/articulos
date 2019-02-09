@@ -38,6 +38,36 @@ export default Vue.extend({
         } else {
           this.$emit('destroy');
         }
+      } else if (e.keyCode === 38) {
+        if (this.$el.previousSibling) {
+          setTimeout(() => {
+            const el = (this.$el.previousSibling! as HTMLElement).firstChild!;
+            const lastNode = el.childNodes[el.childNodes.length - 1];
+            sel.collapse(lastNode, lastNode.nodeValue!.length);
+            ((this.$el.previousSibling! as HTMLElement).querySelector('.content') as HTMLElement)!.focus();
+          }, 0);
+        }
+      } else if (e.keyCode === 37) {
+        if (this.$el.previousSibling && sel.anchorOffset === 0) {
+          setTimeout(() => {
+            const el = (this.$el.previousSibling! as HTMLElement).firstChild!;
+            const lastNode = el.childNodes[el.childNodes.length - 1];
+            sel.collapse(lastNode, lastNode.nodeValue!.length);
+            ((this.$el.previousSibling! as HTMLElement).querySelector('.content') as HTMLElement)!.focus();
+          }, 0);
+        }
+      } else if (e.keyCode === 39) {
+        if (this.$el.nextSibling && sel.anchorOffset === this.content.length) {
+          setTimeout(() => {
+            const el = (this.$el.nextSibling! as HTMLElement);
+            sel.collapse(el.childNodes[0], 0);
+            ((this.$el.nextSibling! as HTMLElement).querySelector('.content') as HTMLElement)!.focus();
+          }, 0);
+        }
+      } else if (e.keyCode === 40) {
+        if (this.$el.nextSibling) {
+          ((this.$el.nextSibling! as HTMLElement).querySelector('.content') as HTMLElement)!.focus();
+        }
       }
       (this.$refs.input as Node).normalize();
     },
@@ -50,11 +80,7 @@ export default Vue.extend({
       } else if (this.content.slice(0, 3) === '## ') {
         this.content = this.content.slice(3);
         this.setType(Type.Header2);
-      } else if (/.*(<br\\?>){3,}$/.test(this.content)) {
-        this.content = this.content.substr(0, /(<br\\?>){3,}$/.exec(this.content)!.index);
-        (this.$refs.input as HTMLElement).innerHTML = this.content;
-        this.$emit('new');
-      } else if (/.*(<br\\?>)$/.test(this.content) && this.type !== Type.Paragraph) {
+      } else if (/.*(<br\\?>)$/.test(this.content)) {
         this.content = this.content.substr(0, /(<br\\?>)*$/.exec(this.content)!.index);
         (this.$refs.input as HTMLElement).innerHTML = this.content;
         this.$emit('new');
