@@ -113,6 +113,14 @@ export default Vue.extend({
         const el = this.$refs.input as HTMLElement;
         el.focus();
         setTimeout(() => {
+          if (t === Type.Paragraph) {
+            const val = el.innerHTML;
+            el.childNodes.forEach((c) =>
+              c.remove(),
+            );
+            el.innerHTML = val;
+            el.focus();
+          }
           const sel = window.getSelection();
           sel.collapse(el.childNodes[0], offset);
         }, 0);
