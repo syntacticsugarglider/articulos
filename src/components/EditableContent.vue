@@ -27,7 +27,14 @@ export default Vue.extend({
     };
   },
   mounted() {
-    (this.$refs.input as HTMLElement).focus();
+    const el = this.$refs.input as HTMLElement;
+    el.focus();
+    const val = el.innerHTML;
+    el.childNodes.forEach((c) =>
+      c.remove(),
+    );
+    el.innerHTML = val;
+    el.focus();
   },
   methods: {
     keydown(e: KeyboardEvent) {
