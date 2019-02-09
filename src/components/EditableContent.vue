@@ -19,10 +19,10 @@ enum Type {
 import Vue from 'vue';
 
 export default Vue.extend({
-  props: [],
+  props: ['contents'],
   data() {
     return {
-      content: '',
+      content: this.$props.contents,
       type: Type.Paragraph,
     };
   },
@@ -42,8 +42,10 @@ export default Vue.extend({
         if (this.$el.previousSibling) {
           setTimeout(() => {
             const el = (this.$el.previousSibling! as HTMLElement).firstChild!;
-            const lastNode = el.childNodes[el.childNodes.length - 1];
-            sel.collapse(lastNode, lastNode.nodeValue!.length);
+            if (el.childNodes.length > 0) {
+              const lastNode = el.childNodes[el.childNodes.length - 1];
+              sel.collapse(lastNode, lastNode.nodeValue!.length);
+            }
             ((this.$el.previousSibling! as HTMLElement).querySelector('.content') as HTMLElement)!.focus();
           }, 0);
         }
@@ -51,8 +53,10 @@ export default Vue.extend({
         if (this.$el.previousSibling && sel.anchorOffset === 0) {
           setTimeout(() => {
             const el = (this.$el.previousSibling! as HTMLElement).firstChild!;
-            const lastNode = el.childNodes[el.childNodes.length - 1];
-            sel.collapse(lastNode, lastNode.nodeValue!.length);
+            if (el.childNodes.length > 0) {
+              const lastNode = el.childNodes[el.childNodes.length - 1];
+              sel.collapse(lastNode, lastNode.nodeValue!.length);
+            }
             ((this.$el.previousSibling! as HTMLElement).querySelector('.content') as HTMLElement)!.focus();
           }, 0);
         }
@@ -84,6 +88,11 @@ export default Vue.extend({
         this.content = this.content.substr(0, /(<br\\?>)*$/.exec(this.content)!.index);
         (this.$refs.input as HTMLElement).innerHTML = this.content;
         this.$emit('new');
+      } else if (/.*<br\\?>.*/.test(this.content)) {
+        const lines = this.content.split(/<br\\?>/);
+        this.content = lines[0];
+        (this.$refs.input as HTMLElement).innerHTML = this.content;
+        this.$emit('new', lines[1]);
       }
     },
     setType(t: Type) {

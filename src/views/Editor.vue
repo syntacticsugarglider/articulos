@@ -1,6 +1,6 @@
 <template lang="pug">
   .page
-    EditableContent(v-for="entry in content.entries()", @new="createNew(entry[0])", @destroy="destroy(entry[0])", :key="entry[1][1]")
+    EditableContent(v-for="entry in content.entries()", @new="(content) => {createNew(entry[0], content)}", @destroy="destroy(entry[0])", :key="entry[1][1]", :contents="entry[1][0]")
 </template>
 
 <script lang="ts">
@@ -18,9 +18,9 @@ export default Vue.extend({
     };
   },
   methods: {
-    createNew(index: number) {
+    createNew(index: number, content: string) {
       this.accu++;
-      this.content.splice(index + 1, 0, ['', this.accu]);
+      this.content.splice(index + 1, 0, [content, this.accu]);
     },
     destroy(index: number) {
       if (index === 0) {
