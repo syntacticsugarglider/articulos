@@ -19,11 +19,11 @@ enum Type {
 import Vue from 'vue';
 
 export default Vue.extend({
-  props: ['contents'],
+  props: ['value'],
   data() {
     return {
-      content: this.$props.contents,
-      type: Type.Paragraph,
+      content: this.$props.value.content,
+      type: this.$props.value.type,
     };
   },
   mounted() {
@@ -92,8 +92,10 @@ export default Vue.extend({
         const lines = this.content.split(/<br\\?>/);
         this.content = lines[0];
         (this.$refs.input as HTMLElement).innerHTML = this.content;
-        this.$emit('new', lines[1]);
+        this.$emit('new', {content: lines[1], type: this.type});
       }
+      (this.$refs.input as Node).normalize();
+      this.$emit('input', {content: this.content, type: this.type});
     },
     setType(t: Type) {
       let offset = 0;
