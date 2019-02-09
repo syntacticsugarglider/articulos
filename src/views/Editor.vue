@@ -30,9 +30,11 @@ export default Vue.extend({
       const el = (this.$el.querySelectorAll('.content')[index - 1] as HTMLElement);
       setTimeout(() => {
         el.focus();
-        const sel = window.getSelection();
-        const lastNode = el.childNodes[el.childNodes.length - 1];
-        sel.collapse(lastNode, lastNode.nodeValue!.length);
+        if (el.childNodes.length > 0) {
+          const sel = window.getSelection();
+          const lastNode = el.childNodes[el.childNodes.length - 1];
+          sel.collapse(lastNode, lastNode.nodeValue!.length);
+        }
       }, 0);
     },
   },
