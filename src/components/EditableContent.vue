@@ -85,10 +85,10 @@ export default Vue.extend({
     update(e: InputEvent) {
       this.content = (this.$refs.input as HTMLElement).innerHTML;
       this.content = this.content.replace('&nbsp;', ' ').replace(/^\s*/, '');
-      if (this.content.slice(0, 2) === '# ') {
+      if (this.content.slice(0, 2) === '# ' && this.type === Type.Paragraph) {
         this.content = this.content.slice(2);
         this.setType(Type.Header);
-      } else if (this.content.slice(0, 3) === '## ') {
+      } else if (this.content.slice(0, 3) === '## ' && this.type === Type.Paragraph) {
         this.content = this.content.slice(3);
         this.setType(Type.Header2);
       } else if (/.*(<br\\?>)$/.test(this.content)) {
