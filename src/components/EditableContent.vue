@@ -42,7 +42,7 @@ export default Vue.extend({
   methods: {
     keydown(e: KeyboardEvent) {
       const sel = document.getSelection()!;
-      if (e.keyCode === 8 && this.isFocusedAtFirstNode())  {
+      if (e.keyCode === 8 && this.isFocusedAtStart())  {
         if (this.type !== Type.Paragraph) {
           this.setType(Type.Paragraph);
         } else {
@@ -180,11 +180,11 @@ export default Vue.extend({
         return true;
       }
       const sel = document.getSelection()!;
-      return ((this.$refs.input as HTMLElement).childNodes[0].isSameNode(sel.anchorNode)
-        && sel.anchorOffset === 0
+      return (((this.$refs.input as HTMLElement).childNodes[0].isSameNode(sel.anchorNode)
         && sel.isCollapsed)
         || (sel.anchorNode.nodeType === 1
-        && (sel.anchorNode as HTMLElement).matches('.content'));
+        && (sel.anchorNode as HTMLElement).matches('.content')))
+        && sel.anchorOffset === 0;
     },
     isFocusedAtLastNode() {
       const lastNode = this.lastNode();
@@ -192,7 +192,7 @@ export default Vue.extend({
         return true;
       }
       const sel = document.getSelection()!;
-      return (lastNode.isSameNode(sel.anchorNode));
+      return (lastNode.isSameNode(sel.anchorNode)) && sel.isCollapsed;
     },
     isFocusedAtFirstNode() {
       const childNodes = (this.$refs.input as HTMLElement).childNodes;
@@ -200,8 +200,7 @@ export default Vue.extend({
         return true;
       }
       const sel = document.getSelection()!;
-      return sel.anchorNode.isSameNode(childNodes[0]) || (sel.anchorNode.nodeType === 1
-        && (sel.anchorNode as HTMLElement).matches('.content'));
+      return sel.anchorNode.isSameNode(childNodes[0]) && sel.isCollapsed;
     },
   },
 });
