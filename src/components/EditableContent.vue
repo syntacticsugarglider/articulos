@@ -94,21 +94,34 @@ export default Vue.extend({
       if (this.content === '' && this.isFirefox) {
         this.content = `<br type="_moz">`;
       }
-      if (this.content.slice(0, 2) === '# ' && this.type === Type.Paragraph) {
-        this.content = this.content.slice(2);
-        this.setType(Type.Header);
-      } else if (this.content.slice(0, 3) === '## ' && this.type === Type.Paragraph) {
-        this.content = this.content.slice(3);
-        this.setType(Type.Header2);
-      } else if (/.*(<br\\?>)$/.test(this.content)) {
-        this.content = this.content.substr(0, /(<br\\?>)*$/.exec(this.content)!.index);
-        (this.$refs.input as HTMLElement).innerHTML = this.content;
-        this.$emit('new');
-      } else if (/.*<br\\?>.*/.test(this.content)) {
-        const lines = this.content.split(/<br\\?>/);
-        this.content = lines[0];
-        (this.$refs.input as HTMLElement).innerHTML = this.content;
-        this.$emit('new', {content: lines[1], type: this.type});
+      if (this.type === Type.Paragraph) {
+        if (this.content.slice(0, 2) === '# ') {
+          this.content = this.content.slice(2);
+          this.setType(Type.Header);
+        } else if (this.content.slice(0, 3) === '## ') {
+          this.content = this.content.slice(3);
+          this.setType(Type.Header2);
+        } else if (/.*(<br\\?>){2,}.*/.test(this.content)) {
+          const lines = this.content.split(/<br\\?>/);
+          this.content = lines.slice(0, lines.length - 1).join('<br>');
+          (this.$refs.input as HTMLElement).innerHTML = this.content;
+          this.$emit('new', {content: lines[lines.length - 1], type: this.type});
+        } else if (/.*(<br\\?>){2,}$/.test(this.content)) {
+          this.content = this.content.substr(0, /(<br\\?>)*$/.exec(this.content)!.index);
+          (this.$refs.input as HTMLElement).innerHTML = this.content;
+          this.$emit('new');
+        }
+      } else {
+        if (/.*<br\\?>.*/.test(this.content)) {
+          const lines = this.content.split(/<br\\?>/);
+          this.content = lines[0];
+          (this.$refs.input as HTMLElement).innerHTML = this.content;
+          this.$emit('new', {content: lines[1], type: this.type});
+        } else if (/.*(<br\\?>)$/.test(this.content)) {
+          this.content = this.content.substr(0, /(<br\\?>)*$/.exec(this.content)!.index);
+          (this.$refs.input as HTMLElement).innerHTML = this.content;
+          this.$emit('new');
+        }
       }
       (this.$refs.input as Node).normalize();
       this.$emit('input', {content: this.content, type: this.type});
