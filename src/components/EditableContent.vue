@@ -164,7 +164,9 @@ export default Vue.extend({
     focusAtEnd() {
       const sel = document.getSelection()!;
       const lastNode = this.lastNode();
-      sel.collapse(lastNode, lastNode.nodeValue!.length);
+      if (lastNode) {
+        sel.collapse(lastNode, lastNode.nodeValue!.length);
+      }
     },
     isFocusedAtEnd() {
       const sel = document.getSelection()!;

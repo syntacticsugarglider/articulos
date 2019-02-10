@@ -1,5 +1,5 @@
 <template lang="pug">
-  .page
+  .page(@click="focus")
     EditableContent(v-for="entry in content.entries()", @new="(content) => {createNew(entry[0], content)}", @destroy="destroy(entry[0])", :key="entry[1][1]", v-model="entry[1][0]")
 </template>
 
@@ -40,6 +40,17 @@ export default Vue.extend({
         }
       }, 0);
     },
+    focus(e: MouseEvent) {
+      const sel = document.getSelection()!;
+      if ((e.target as Node).isSameNode(this.$el)) {
+        if (!document.activeElement!.matches('.content')) {
+          const contents = this.$el.querySelectorAll('.content');
+          const lastSection = contents[contents.length - 1];
+          (lastSection as any).parentElement.__vue__.focusAtEnd();
+          (lastSection as HTMLElement).focus();
+        }
+      }
+    },
   },
 });
 </script>
@@ -49,8 +60,10 @@ export default Vue.extend({
   text-align: initial
   max-width: 700px
   padding: 30px
+  padding-top: 80px
+  padding-bottom: 80px
   width: calc(100vw - 100px)
   margin: auto
   border-radius: 10px
-  margin-top: 50px
+  min-height: 100vh
 </style>
