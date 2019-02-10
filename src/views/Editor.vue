@@ -36,9 +36,7 @@ export default Vue.extend({
       setTimeout(() => {
         el.focus();
         if (el.childNodes.length > 0) {
-          const sel = window.getSelection();
-          const lastNode = (el as any).parentElement.__vue__.lastNode();
-          sel.collapse(lastNode, lastNode.nodeValue!.length);
+          (el as any).parentElement.__vue__.focusAtEnd();
         }
       }, 0);
     },

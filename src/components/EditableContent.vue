@@ -42,36 +42,34 @@ export default Vue.extend({
   methods: {
     keydown(e: KeyboardEvent) {
       const sel = document.getSelection()!;
-      if (sel.anchorOffset === 0 && e.keyCode === 8 && sel.isCollapsed)  {
+      if (e.keyCode === 8 && this.isFocusedAtFirstNode())  {
         if (this.type !== Type.Paragraph) {
           this.setType(Type.Paragraph);
         } else {
           this.$emit('destroy');
         }
       } else if (e.keyCode === 38) {
-        if (this.$el.previousSibling) {
+        if (this.$el.previousSibling && this.isFocusedAtFirstNode()) {
           setTimeout(() => {
-            const el = (this.$el.previousSibling! as HTMLElement).firstChild!;
-            if (el.childNodes.length > 0) {
-              const lastNode = el.childNodes[el.childNodes.length - 1];
-              sel.collapse(lastNode, lastNode.nodeValue!.length);
+            const el = (this.$el.previousSibling! as any);
+            if (el.firstChild.childNodes.length > 0) {
+              el.__vue__.focusAtEnd();
             }
             ((this.$el.previousSibling! as HTMLElement).querySelector('.content') as HTMLElement)!.focus();
           }, 0);
         }
       } else if (e.keyCode === 37) {
-        if (this.$el.previousSibling && sel.anchorOffset === 0 && sel.isCollapsed) {
+        if (this.$el.previousSibling && this.isFocusedAtStart()) {
           setTimeout(() => {
-            const el = (this.$el.previousSibling! as HTMLElement).firstChild!;
-            if (el.childNodes.length > 0) {
-              const lastNode = el.childNodes[el.childNodes.length - 1];
-              sel.collapse(lastNode, lastNode.nodeValue!.length);
+            const el = (this.$el.previousSibling! as any)!;
+            if (el.firstChild.childNodes.length > 0) {
+              el.__vue__.focusAtEnd();
             }
             ((this.$el.previousSibling! as HTMLElement).querySelector('.content') as HTMLElement)!.focus();
           }, 0);
         }
       } else if (e.keyCode === 39) {
-        if (this.$el.nextSibling && sel.anchorOffset === this.content.length && sel.isCollapsed) {
+        if (this.$el.nextSibling && this.isFocusedAtEnd()) {
           setTimeout(() => {
             const el = (this.$el.nextSibling! as HTMLElement);
             sel.collapse(el.childNodes[0], 0);
@@ -79,7 +77,7 @@ export default Vue.extend({
           }, 0);
         }
       } else if (e.keyCode === 40) {
-        if (this.$el.nextSibling) {
+        if (this.$el.nextSibling && this.isFocusedAtLastNode()) {
           ((this.$el.nextSibling! as HTMLElement).querySelector('.content') as HTMLElement)!.focus();
         }
       }
@@ -162,6 +160,48 @@ export default Vue.extend({
       const allNodes = Array.from(el.childNodes).filter((e) => e.nodeName !== 'BR');
       const lastNode = allNodes[allNodes.length - 1];
       return lastNode;
+    },
+    focusAtEnd() {
+      const sel = document.getSelection()!;
+      const lastNode = this.lastNode();
+      sel.collapse(lastNode, lastNode.nodeValue!.length);
+    },
+    isFocusedAtEnd() {
+      const sel = document.getSelection()!;
+      const lastNode = this.lastNode();
+      return lastNode ?
+        lastNode.isSameNode(sel.anchorNode)
+          && sel.anchorOffset === lastNode.nodeValue!.length
+          && sel.isCollapsed
+        : true;
+    },
+    isFocusedAtStart() {
+      if ((this.$refs.input as HTMLElement).childNodes.length === 0) {
+        return true;
+      }
+      const sel = document.getSelection()!;
+      return ((this.$refs.input as HTMLElement).childNodes[0].isSameNode(sel.anchorNode)
+        && sel.anchorOffset === 0
+        && sel.isCollapsed)
+        || (sel.anchorNode.nodeType === 1
+        && (sel.anchorNode as HTMLElement).matches('.content'));
+    },
+    isFocusedAtLastNode() {
+      const lastNode = this.lastNode();
+      if (!lastNode) {
+        return true;
+      }
+      const sel = document.getSelection()!;
+      return (lastNode.isSameNode(sel.anchorNode));
+    },
+    isFocusedAtFirstNode() {
+      const childNodes = (this.$refs.input as HTMLElement).childNodes;
+      if (childNodes.length === 0) {
+        return true;
+      }
+      const sel = document.getSelection()!;
+      return sel.anchorNode.isSameNode(childNodes[0]) || (sel.anchorNode.nodeType === 1
+        && (sel.anchorNode as HTMLElement).matches('.content'));
     },
   },
 });
