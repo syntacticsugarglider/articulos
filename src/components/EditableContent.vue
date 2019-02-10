@@ -157,6 +157,12 @@ export default Vue.extend({
         }, 0);
       }, 0);
     },
+    lastNode() {
+      const el = (this.$refs.input as HTMLElement);
+      const allNodes = Array.from(el.childNodes).filter((e) => e.nodeName !== 'BR');
+      const lastNode = allNodes[allNodes.length - 1];
+      return lastNode;
+    },
   },
 });
 </script>

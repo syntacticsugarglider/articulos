@@ -37,8 +37,7 @@ export default Vue.extend({
         el.focus();
         if (el.childNodes.length > 0) {
           const sel = window.getSelection();
-          const allNodes = Array.from(el.childNodes).filter((e) => e.nodeName !== 'BR');
-          const lastNode = allNodes[allNodes.length - 1];
+          const lastNode = (el as any).parentElement.__vue__.lastNode();
           sel.collapse(lastNode, lastNode.nodeValue!.length);
         }
       }, 0);
