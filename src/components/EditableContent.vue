@@ -57,7 +57,7 @@ export default Vue.extend({
           }, 0);
         }
       } else if (e.keyCode === 37) {
-        if (this.$el.previousSibling && sel.anchorOffset === 0) {
+        if (this.$el.previousSibling && sel.anchorOffset === 0 && sel.isCollapsed) {
           setTimeout(() => {
             const el = (this.$el.previousSibling! as HTMLElement).firstChild!;
             if (el.childNodes.length > 0) {
@@ -68,7 +68,7 @@ export default Vue.extend({
           }, 0);
         }
       } else if (e.keyCode === 39) {
-        if (this.$el.nextSibling && sel.anchorOffset === this.content.length) {
+        if (this.$el.nextSibling && sel.anchorOffset === this.content.length && sel.isCollapsed) {
           setTimeout(() => {
             const el = (this.$el.nextSibling! as HTMLElement);
             sel.collapse(el.childNodes[0], 0);
@@ -84,10 +84,11 @@ export default Vue.extend({
     },
     update(e: InputEvent) {
       this.content = (this.$refs.input as HTMLElement).innerHTML;
-      this.content = this.content.replace('&nbsp;', ' ').replace(/^\s*/, '');
-      if (/^<br\\?>$/.test(this.content)) {
-        this.content = '';
-      } else if (this.content.slice(0, 2) === '# ' && this.type === Type.Paragraph) {
+      this.content = this.content
+        .replace('&nbsp;', ' ')
+        .replace(/^\s*/, '')
+        .replace(/<br\\?>(?!<br\\?>)$/, '');
+      if (this.content.slice(0, 2) === '# ' && this.type === Type.Paragraph) {
         this.content = this.content.slice(2);
         this.setType(Type.Header);
       } else if (this.content.slice(0, 3) === '## ' && this.type === Type.Paragraph) {
@@ -122,14 +123,12 @@ export default Vue.extend({
         const el = this.$refs.input as HTMLElement;
         el.focus();
         setTimeout(() => {
-          if (t === Type.Paragraph) {
-            const val = el.innerHTML;
-            el.childNodes.forEach((c) =>
-              c.remove(),
-            );
-            el.innerHTML = val;
-            el.focus();
-          }
+          const val = el.innerHTML;
+          el.childNodes.forEach((c) =>
+            c.remove(),
+          );
+          el.innerHTML = val;
+          el.focus();
           const sel = window.getSelection();
           sel.collapse(el.childNodes[0], offset);
         }, 0);
