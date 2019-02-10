@@ -137,6 +137,10 @@ export default Vue.extend({
           el.focus();
           const sel = window.getSelection();
           sel.collapse(el.childNodes[0], offset);
+          el.blur();
+          setTimeout(() => {
+            (this.$refs.input as HTMLElement).focus();
+          }, 0);
         }, 0);
       }, 0);
     },
