@@ -29,3 +29,29 @@ p
   background: var(--accent-color)
   color: var(--secondary-foreground-color)
 </style>
+
+<script lang="ts">
+import Vue from 'vue';
+
+declare var InstallTrigger: any;
+
+export default Vue.extend({
+  data() {
+    return {
+    };
+  },
+  mounted() {
+    if (typeof InstallTrigger !== 'undefined') {
+      document.addEventListener('keydown', (e) => {
+        const target = (e.target || e.srcElement)! as HTMLElement;
+        if (e.keyCode === 8 && target.matches('[contenteditable="true"]')) {
+          const sel = document.getSelection()!;
+          if (sel.anchorOffset <= (sel.anchorNode.nodeType === 1 ? 1 : 0) && sel.isCollapsed) {
+            e.preventDefault();
+          }
+        }
+      });
+    }
+  },
+});
+</script>

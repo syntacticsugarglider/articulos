@@ -18,12 +18,15 @@ enum Type {
 
 import Vue from 'vue';
 
+declare var InstallTrigger: any;
+
 export default Vue.extend({
   props: ['value'],
   data() {
     return {
       content: this.$props.value.content,
       type: this.$props.value.type,
+      isFirefox: typeof InstallTrigger !== 'undefined',
     };
   },
   mounted() {
@@ -33,7 +36,7 @@ export default Vue.extend({
     el.childNodes.forEach((c) =>
       c.remove(),
     );
-    el.innerHTML = val;
+    el.innerHTML = this.isFirefox && val === '' ? `<br type="_moz">` : val;
     el.focus();
   },
   methods: {
@@ -88,6 +91,9 @@ export default Vue.extend({
         .replace('&nbsp;', ' ')
         .replace(/^\s*/, '')
         .replace(/<br\\?>(?!<br\\?>)$/, '');
+      if (this.content === '' && this.isFirefox) {
+        this.content = `<br type="_moz">`;
+      }
       if (this.content.slice(0, 2) === '# ' && this.type === Type.Paragraph) {
         this.content = this.content.slice(2);
         this.setType(Type.Header);
