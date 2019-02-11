@@ -58,10 +58,9 @@ export default Vue.extend({
         if (e.key === '*') {
           e.preventDefault();
           this.sectors.push({type: 2, content: '&#x200B;'});
-          this.setType(Type.Paragraph);
-          setTimeout(() => {
+          this.setType(Type.Paragraph).then(() => {
             this.focusAtSectorStart(this.sectors.length - 1);
-          }, 5);
+          });
           return;
         }
       }
@@ -179,26 +178,29 @@ export default Vue.extend({
       }
       this.type = t;
       this.typeString = typeMap.get(this.type)!;
-      setTimeout(() => {
-        const el = this.$refs.input as HTMLElement;
-        if (this.sectors[0].content === '' && this.isFirefox && t !== Type.Paragraph) {
-          el.innerHTML = `<br type="_moz">`;
-        }
-        el.focus();
+      return new Promise((resolve, reject) => {
         setTimeout(() => {
-          const val = el.innerHTML;
-          el.childNodes.forEach((c) =>
-            c.remove(),
-          );
-          el.innerHTML = val;
-          el.blur();
+          const el = this.$refs.input as HTMLElement;
+          if (this.sectors[0].content === '' && this.isFirefox && t !== Type.Paragraph) {
+            el.innerHTML = `<br type="_moz">`;
+          }
+          el.focus();
           setTimeout(() => {
-            const sel = window.getSelection();
-            sel.collapse(el.childNodes[0], offset);
-            (this.$refs.input as HTMLElement).focus();
+            const val = el.innerHTML;
+            el.childNodes.forEach((c) =>
+              c.remove(),
+            );
+            el.innerHTML = val;
+            el.blur();
+            setTimeout(() => {
+              const sel = window.getSelection();
+              sel.collapse(el.childNodes[0], offset);
+              (this.$refs.input as HTMLElement).focus();
+              resolve();
+            }, 0);
           }, 0);
         }, 0);
-      }, 0);
+      });
     },
     lastNode() {
       const el = (this.$refs.input as HTMLElement);
