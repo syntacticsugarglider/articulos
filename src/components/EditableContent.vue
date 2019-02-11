@@ -1,13 +1,23 @@
 <template lang="pug">
   .container(@keydown="keydown")
-    p.content(v-if="type === 1", ref="input", contenteditable=true, @input="update") {{ content }}
-    h1.content(v-else-if="type === 2", ref="input", contenteditable=true, @input="update") {{ content }}
-    h2.content(v-else-if="type === 3", ref="input", contenteditable=true, @input="update") {{ content }}
+    p.content(v-if="type === 1", ref="input", contenteditable=true, @input="update")
+      template(v-for="sector in sectors")
+        template(v-if="sector.type === 1")
+          template {{ sector.content }}
+    h1.content(v-else-if="type === 2", ref="input", contenteditable=true, @input="update")
+      template(v-for="sector in sectors")
+        template(v-if="sector.type === 1")
+          template {{ sector.content }}
+    h2.content(v-else-if="type === 3", ref="input", contenteditable=true, @input="update")
+      template(v-for="sector in sectors")
+        template(v-if="sector.type === 1")
+          template {{ sector.content }}
 </template>
 
 <script lang="ts">
-interface InputEvent {
-  inputType: string;
+interface Section {
+  type: number;
+  content: string;
 }
 
 enum Type {
@@ -24,7 +34,7 @@ export default Vue.extend({
   props: ['value'],
   data() {
     return {
-      content: this.$props.value.content,
+      sectors: [{type: 1, content: this.$props.value.content}],
       type: this.$props.value.type,
       isFirefox: typeof InstallTrigger !== 'undefined',
     };
@@ -95,61 +105,63 @@ export default Vue.extend({
       }
       (this.$refs.input as Node).normalize();
     },
-    update(e: InputEvent) {
-      this.content = (this.$refs.input as HTMLElement).innerHTML;
-      this.content = this.content
+    update(e: Event) {
+      this.sectors = [{type: 1, content: (this.$refs.input as HTMLElement).innerHTML}];
+      this.sectors[0].content = this.sectors[0].content
         .replace('&nbsp;', ' ')
         .replace(/^\s*/, '')
         .replace(/<br\\?>(?!<br\\?>)$/, '');
-      if (this.content === '' && this.isFirefox) {
-        this.content = `<br type="_moz">`;
+      if (this.sectors[0].content === '' && this.isFirefox) {
+        this.sectors[0].content = `<br type="_moz">`;
       }
       if (this.type === Type.Paragraph) {
-        if (this.content.slice(0, 2) === '# ') {
-          this.content = this.content.slice(2);
+        if (this.sectors[0].content.slice(0, 2) === '# ') {
+          this.sectors[0].content = this.sectors[0].content.slice(2);
           this.setType(Type.Header);
-        } else if (this.content.slice(0, 3) === '## ') {
-          this.content = this.content.slice(3);
+        } else if (this.sectors[0].content.slice(0, 3) === '## ') {
+          this.sectors[0].content = this.sectors[0].content.slice(3);
           this.setType(Type.Header2);
-        } else if (/.*(<br\\?>){2,}.*/.test(this.content)) {
-          const lines = this.content.split(/<br\\?>/);
-          this.content = lines.slice(0, lines.length - 1).join('<br>');
-          (this.$refs.input as HTMLElement).innerHTML = this.content;
+        } else if (/.*(<br\\?>){2,}.*/.test(this.sectors[0].content)) {
+          const lines = this.sectors[0].content.split(/<br\\?>/);
+          this.sectors[0].content = lines.slice(0, lines.length - 1).join('<br>');
+          (this.$refs.input as HTMLElement).innerHTML = this.sectors[0].content;
           this.$emit('new', {content: lines[lines.length - 1], type: this.type});
-        } else if (/.*(<br\\?>){2,}$/.test(this.content)) {
-          this.content = this.content.substr(0, /(<br\\?>)*$/.exec(this.content)!.index);
-          (this.$refs.input as HTMLElement).innerHTML = this.content;
+        } else if (/.*(<br\\?>){2,}$/.test(this.sectors[0].content)) {
+          this.sectors[0].content =
+            this.sectors[0].content.substr(0, /(<br\\?>)*$/.exec(this.sectors[0].content)!.index);
+          (this.$refs.input as HTMLElement).innerHTML = this.sectors[0].content;
           this.$emit('new');
         }
       } else {
-        if (/.*<br\\?>.*/.test(this.content)) {
-          const lines = this.content.split(/<br\\?>/);
-          this.content = lines[0];
-          (this.$refs.input as HTMLElement).innerHTML = this.content;
+        if (/.*<br\\?>.*/.test(this.sectors[0].content)) {
+          const lines = this.sectors[0].content.split(/<br\\?>/);
+          this.sectors[0].content = lines[0];
+          (this.$refs.input as HTMLElement).innerHTML = this.sectors[0].content;
           this.$emit('new', {content: lines[1], type: this.type});
-        } else if (/.*(<br\\?>)$/.test(this.content)) {
-          this.content = this.content.substr(0, /(<br\\?>)*$/.exec(this.content)!.index);
-          (this.$refs.input as HTMLElement).innerHTML = this.content;
+        } else if (/.*(<br\\?>)$/.test(this.sectors[0].content)) {
+          this.sectors[0].content =
+            this.sectors[0].content.substr(0, /(<br\\?>)*$/.exec(this.sectors[0].content)!.index);
+          (this.$refs.input as HTMLElement).innerHTML = this.sectors[0].content;
           this.$emit('new');
         }
       }
       (this.$refs.input as Node).normalize();
-      this.$emit('input', {content: this.content, type: this.type});
+      this.$emit('input', {content: this.sectors[0].content, type: this.type});
     },
     setType(t: Type) {
       let offset = 0;
       if (t === Type.Paragraph) {
         if (this.type === Type.Header) {
-          this.content = '#' + this.content;
+          this.sectors[0].content = '#' + this.sectors[0].content;
           offset = 1;
         } else if (this.type === Type.Header2) {
-          this.content = '##' + this.content;
+          this.sectors[0].content = '##' + this.sectors[0].content;
           offset = 2;
         }
       }
-      if (this.type === Type.Paragraph && /<br\\?>/.test(this.content) && t !== Type.Paragraph) {
-        const lines = this.content.split(/<br\\?>/);
-        this.content = lines[0];
+      if (this.type === Type.Paragraph && /<br\\?>/.test(this.sectors[0].content) && t !== Type.Paragraph) {
+        const lines = this.sectors[0].content.split(/<br\\?>/);
+        this.sectors[0].content = lines[0];
         lines.slice(1).forEach((e: string) => {
           this.$emit('new', {
             content: e,
@@ -160,7 +172,7 @@ export default Vue.extend({
       this.type = t;
       setTimeout(() => {
         const el = this.$refs.input as HTMLElement;
-        if (this.content === '' && this.isFirefox && t !== Type.Paragraph) {
+        if (this.sectors[0].content === '' && this.isFirefox && t !== Type.Paragraph) {
           el.innerHTML = `<br type="_moz">`;
         }
         el.focus();
