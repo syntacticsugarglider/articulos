@@ -1,17 +1,13 @@
 <template lang="pug">
   .container(@keydown="keydown")
-    p.content(v-if="type === 1", ref="input", contenteditable=true, @input="update")
-      template(v-for="sector in sectors")
-        template(v-if="sector.type === 1")
-          template {{ sector.content }}
-    h1.content(v-else-if="type === 2", ref="input", contenteditable=true, @input="update")
-      template(v-for="sector in sectors")
-        template(v-if="sector.type === 1")
-          template {{ sector.content }}
-    h2.content(v-else-if="type === 3", ref="input", contenteditable=true, @input="update")
-      template(v-for="sector in sectors")
-        template(v-if="sector.type === 1")
-          template {{ sector.content }}
+    component.content(ref="input", contenteditable=true, @input="update", :is="typeString")
+      template(v-for="sector in sectors.entries()")
+        template &#x200B;
+        template(v-if="sector[1].type === 1")
+          template(v-html="sector[1].content")
+        template(v-else-if="sector[1].type === 2")
+          span.bold(contenteditable=true, :key="sector[0]", v-html="sector[1].content")
+        template &#x200B;
 </template>
 
 <script lang="ts">
@@ -23,8 +19,14 @@ interface Section {
 enum Type {
   Paragraph = 1,
   Header,
-  Header2,
+  SubHeader,
 }
+
+const typeMap = new Map<Type, string>();
+
+typeMap.set(Type.Paragraph, 'p');
+typeMap.set(Type.Header, 'h1');
+typeMap.set(Type.SubHeader, 'h2');
 
 import Vue from 'vue';
 
@@ -36,6 +38,7 @@ export default Vue.extend({
     return {
       sectors: [{type: 1, content: this.$props.value.content}],
       type: this.$props.value.type,
+      typeString: 'p',
       isFirefox: typeof InstallTrigger !== 'undefined',
     };
   },
@@ -54,6 +57,11 @@ export default Vue.extend({
       if (this.type === Type.Paragraph) {
         if (e.key === '*') {
           e.preventDefault();
+          this.sectors.push({type: 2, content: '&#x200B;'});
+          this.setType(Type.Paragraph);
+          setTimeout(() => {
+            this.focusAtSectorStart(this.sectors.length - 1);
+          }, 5);
           return;
         }
       }
@@ -120,7 +128,7 @@ export default Vue.extend({
           this.setType(Type.Header);
         } else if (this.sectors[0].content.slice(0, 3) === '## ') {
           this.sectors[0].content = this.sectors[0].content.slice(3);
-          this.setType(Type.Header2);
+          this.setType(Type.SubHeader);
         } else if (/.*(<br\\?>){2,}.*/.test(this.sectors[0].content)) {
           const lines = this.sectors[0].content.split(/<br\\?>/);
           this.sectors[0].content = lines.slice(0, lines.length - 1).join('<br>');
@@ -154,7 +162,7 @@ export default Vue.extend({
         if (this.type === Type.Header) {
           this.sectors[0].content = '#' + this.sectors[0].content;
           offset = 1;
-        } else if (this.type === Type.Header2) {
+        } else if (this.type === Type.SubHeader) {
           this.sectors[0].content = '##' + this.sectors[0].content;
           offset = 2;
         }
@@ -170,6 +178,7 @@ export default Vue.extend({
         });
       }
       this.type = t;
+      this.typeString = typeMap.get(this.type)!;
       setTimeout(() => {
         const el = this.$refs.input as HTMLElement;
         if (this.sectors[0].content === '' && this.isFirefox && t !== Type.Paragraph) {
@@ -239,6 +248,18 @@ export default Vue.extend({
       const sel = document.getSelection()!;
       return sel.anchorNode.isSameNode(childNodes[0]) && sel.isCollapsed;
     },
+    focusAtSectorStart(sector: number) {
+      const childNodes = (this.$refs.input as HTMLElement).childNodes;
+      const sel = document.getSelection()!;
+      if (this.sectors[sector]) {
+        if (this.sectors[sector].type === 1) {
+          sel.collapse(childNodes[sector], 0);
+        } else if (this.sectors[sector].type === 2) {
+          (childNodes[sector].childNodes[0].parentElement as HTMLElement).focus();
+          sel.collapse(childNodes[sector].childNodes[0], 1);
+        }
+      }
+    },
   },
 });
 </script>
@@ -264,9 +285,9 @@ export default Vue.extend({
   animation: fade 0.15s ease
   transition: opacity 0.15s ease
   font-weight: bold
-  opacity: 0.5
-.content:focus::before
   opacity: 0.75
+.content:focus::before
+  opacity: 1
 h1.content::before
   content: "#"
 h2.content::before
@@ -275,4 +296,22 @@ h2.content::before
 p.content::before
   content: "¶"
   margin-top: -1.5px
+.bold
+  font-weight: 600
+.bold::before
+  content: "*"
+  cursor: text
+  color: var(--secondary-accent-color)
+  opacity: 0.75
+  transition: opacity 0.15s ease
+.bold::after
+  content: "*"
+  cursor: text
+  color: var(--secondary-accent-color)
+  opacity: 0.75
+  transition: opacity 0.15s ease
+.content:focus .bold::after
+  opacity: 1
+.content:focus .bold::before
+  opacity: 1
 </style>
