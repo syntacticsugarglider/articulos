@@ -42,9 +42,10 @@ export default Vue.extend({
     if (typeof InstallTrigger !== 'undefined') {
       document.addEventListener('keydown', (e) => {
         const target = (e.target || e.srcElement)! as HTMLElement;
-        if (e.keyCode === 8 && target.matches('[contenteditable="true"]')) {
+        if (e.keyCode === 8 && target.matches('.content')) {
           const sel = document.getSelection()!;
-          if (sel.anchorOffset <= (sel.anchorNode.nodeType === 1 ? 1 : 0) && sel.isCollapsed) {
+          if (target.parentElement &&
+            (target.parentElement as any).__vue__ && (target.parentElement as any).__vue__.isFocusedAtStart()) {
             e.preventDefault();
           }
         }
