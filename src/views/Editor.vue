@@ -37,7 +37,6 @@ export default Vue.extend({
         setTimeout(() => {
           el.focus();
           if (el.childNodes.length > 0) {
-            console.log((el.parentElement as any).__vue__);
             (el as any).parentElement.__vue__.focusAtEnd();
           }
         }, 0);
