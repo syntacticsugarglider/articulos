@@ -160,7 +160,7 @@ export default Vue.extend({
       this.type = t;
       setTimeout(() => {
         const el = this.$refs.input as HTMLElement;
-        if (this.content === '' && this.isFirefox) {
+        if (this.content === '' && this.isFirefox && t !== Type.Paragraph) {
           el.innerHTML = `<br type="_moz">`;
         }
         el.focus();
@@ -170,11 +170,10 @@ export default Vue.extend({
             c.remove(),
           );
           el.innerHTML = val;
-          el.focus();
-          const sel = window.getSelection();
-          sel.collapse(el.childNodes[0], offset);
           el.blur();
           setTimeout(() => {
+            const sel = window.getSelection();
+            sel.collapse(el.childNodes[0], offset);
             (this.$refs.input as HTMLElement).focus();
           }, 0);
         }, 0);
