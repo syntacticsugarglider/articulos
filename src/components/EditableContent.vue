@@ -36,7 +36,6 @@ export default Vue.extend({
     this.appendContent(ZWNBS);
     new MutationObserver((E) => {
       E.forEach((e) => {
-        console.log(e);
         if (e.type === 'characterData') {
           if ((e.target.parentElement as HTMLElement).isSameNode(this.$el)) {
             this.appendContent(e.target.nodeValue!);
