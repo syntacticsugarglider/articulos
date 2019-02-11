@@ -41,8 +41,15 @@ export default Vue.extend({
   },
   methods: {
     keydown(e: KeyboardEvent) {
+      if (this.type === Type.Paragraph) {
+        if (e.key === '*') {
+          e.preventDefault();
+          return;
+        }
+      }
       const sel = document.getSelection()!;
       if (e.keyCode === 8 && this.isFocusedAtStart())  {
+        e.preventDefault();
         if (this.type !== Type.Paragraph) {
           this.setType(Type.Paragraph);
         } else {
@@ -50,6 +57,7 @@ export default Vue.extend({
         }
       } else if (e.keyCode === 38) {
         if (this.$el.previousSibling && this.isFocusedAtFirstNode()) {
+          e.preventDefault();
           setTimeout(() => {
             const el = (this.$el.previousSibling! as any);
             if (el.firstChild.childNodes.length > 0) {
@@ -60,6 +68,7 @@ export default Vue.extend({
         }
       } else if (e.keyCode === 37) {
         if (this.$el.previousSibling && this.isFocusedAtStart()) {
+          e.preventDefault();
           setTimeout(() => {
             const el = (this.$el.previousSibling! as any)!;
             if (el.firstChild.childNodes.length > 0) {
@@ -70,6 +79,7 @@ export default Vue.extend({
         }
       } else if (e.keyCode === 39) {
         if (this.$el.nextSibling && this.isFocusedAtEnd()) {
+          e.preventDefault();
           setTimeout(() => {
             const el = (this.$el.nextSibling! as HTMLElement);
             sel.collapse(el.childNodes[0], 0);
@@ -78,6 +88,8 @@ export default Vue.extend({
         }
       } else if (e.keyCode === 40) {
         if (this.$el.nextSibling && this.isFocusedAtLastNode()) {
+          e.preventDefault();
+          const el = (this.$el.nextSibling! as HTMLElement);
           ((this.$el.nextSibling! as HTMLElement).querySelector('.content') as HTMLElement)!.focus();
         }
       }
@@ -134,6 +146,16 @@ export default Vue.extend({
           this.content = '##' + this.content;
           offset = 2;
         }
+      }
+      if (this.type === Type.Paragraph && /<br\\?>/.test(this.content) && t !== Type.Paragraph) {
+        const lines = this.content.split(/<br\\?>/);
+        this.content = lines[0];
+        lines.slice(1).forEach((e: string) => {
+          this.$emit('new', {
+            content: e,
+            type: t,
+          });
+        });
       }
       this.type = t;
       setTimeout(() => {

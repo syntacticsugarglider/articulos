@@ -28,17 +28,20 @@ export default Vue.extend({
       this.content.splice(index + 1, 0, [content || {content: '', type: 1}, this.accu]);
     },
     destroy(index: number) {
-      if (index === 0) {
+      if (this.content.length === 1) {
         return;
       }
       this.content.splice(index, 1);
-      const el = (this.$el.querySelectorAll('.content')[index - 1] as HTMLElement);
-      setTimeout(() => {
-        el.focus();
-        if (el.childNodes.length > 0) {
-          (el as any).parentElement.__vue__.focusAtEnd();
-        }
-      }, 0);
+      this.$nextTick(() => {
+        const el = (this.$el.querySelectorAll('.content')[Math.max(index - 1, 0)] as HTMLElement);
+        setTimeout(() => {
+          el.focus();
+          if (el.childNodes.length > 0) {
+            console.log((el.parentElement as any).__vue__);
+            (el as any).parentElement.__vue__.focusAtEnd();
+          }
+        }, 0);
+      });
     },
     focus(e: MouseEvent) {
       const sel = document.getSelection()!;
