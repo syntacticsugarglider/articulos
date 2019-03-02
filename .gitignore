@@ -1,8 +1,13 @@
 /target
+Cargo.lock
 **/*.rs.bk
 .DS_Store
 node_modules
 /dist
+
+# private OAuth2
+client_secret.json
+token_store.json
 
 # local env files
 .env.local
