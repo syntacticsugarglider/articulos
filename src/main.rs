@@ -1,27 +1,27 @@
 #[macro_use]
 extern crate lazy_static;
 
+extern crate askama;
 extern crate google_drive3;
 extern crate hyper;
 extern crate hyper_native_tls;
 extern crate regex;
 extern crate yup_oauth2;
 
+use std::fs;
 use std::io::Read;
 use std::path::Path;
 
+use google_drive3::Drive;
 use hyper::net::HttpsConnector;
 use hyper_native_tls::NativeTlsClient;
-
-use google_drive3::Drive;
-use regex::Regex;
 use yup_oauth2::{
     read_application_secret, Authenticator, DefaultAuthenticatorDelegate, DiskTokenStorage,
     FlowType,
 };
 
-const FINAL_HTML_STYLE: &'static str = "<style>body{padding:0;margin:0;}#article{margin:auto;}#navbar{width:100%;z-index:900;position:fixed;background-color:white;border-bottom:solid 2px grey;padding:5px;height:33px;text-align:center;font-family:Geneva,Tahoma,Verdana,sans-serif;}#navbar img:hover{cursor:pointer;border-radius:15px;background-color:#eeeeee;}#navbar #titulo{user-select:none;font-size:25px;}#navbar #hogar{float:left;margin-left:10px;}#navbar #engranaje{float:right;margin-right:10px;}</style>";
-const FINAL_HTML_NAVBAR: &'static str = r#"<div id="navbar"><a href="index.html"><img id="hogar" src="hogar.svg" width="30px" height="30px"></a><img id="engranaje" src="engranaje.svg" width="30px" height="30px"><span id="titulo">Los Millenials Son Malos</span></div>"#;
+use askama::Template;
+use regex::Regex;
 
 enum ImagePlacement {
     Default,
@@ -57,7 +57,7 @@ impl ArticuloLlevador {
 
     fn file_id_from_url(google_url: &str) -> Option<&str> {
         lazy_static! {
-            static ref ID_RE: Regex = Regex::new("[-\\w]{25,}").unwrap();
+            static ref ID_RE: Regex = Regex::new(r"[-\w]{25,}").unwrap();
         }
 
         ID_RE
@@ -67,7 +67,9 @@ impl ArticuloLlevador {
     }
 
     fn get_article(self: &Self, file_id: &str) -> Result<Articulo, Box<std::error::Error>> {
-
+        lazy_static! {
+            static ref ARTICLE_RE: Regex = Regex::new(r#"<body(?P<html>(.*))</body>"#).unwrap();
+        }
 
         let (_resp, metadata) = match self.hub.files().get(file_id).doit() {
             Ok(m) => m,
@@ -77,15 +79,24 @@ impl ArticuloLlevador {
             Ok(f) => f,
             Err(e) => return Err(Box::new(e)),
         };
-        let mut article_html = String::new();
-        file.read_to_string(&mut article_html)?;
+        let mut article = String::new();
+        file.read_to_string(&mut article)?;
 
-        Ok(Articulo::new(article_html
-            .replace("<body", "<body><div id=\"article\"")
-            .replace("</body>", "</div></body>"), metadata))
+        let caps = &ARTICLE_RE.captures(article.as_str()).expect("hello");
+        let mut html = String::from(r#"<div id="article" "#);
+        html.push_str(
+            caps.name("html")
+                .expect("Google export returned bad html")
+                .as_str(),
+        );
+        html.push_str("</div>");
+
+        Ok(Articulo::new(html, metadata))
     }
 }
 
+#[derive(Template)]
+#[template(path = "articulo.html")]
 struct Articulo {
     html: String,
     metadata: google_drive3::File,
@@ -116,15 +127,6 @@ impl Articulo {
                 1,
             );
         }
-    }
-
-    fn generate_full_html(self: &Self) -> String {
-        let mut add_navbar = "<body>".to_string();
-        add_navbar.push_str(&FINAL_HTML_NAVBAR);
-        let mut full_html = self.html
-            .replace("<body>", add_navbar.as_str());
-        full_html.push_str(&FINAL_HTML_STYLE);
-        return full_html;
     }
 }
 

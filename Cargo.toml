@@ -4,6 +4,7 @@ version = "0.1.0"
 authors = ["Jacob Swart <zenerboson@gmail.com>", "Leo Conrad-Shah <leoconr@nuevaschool.org>"]
 
 [dependencies]
+askama = "0.8.0"
 lazy_static = "1.3.0"
 yup-oauth2 = "^ 1.0"
 google-drive3 = "^ 1.0"

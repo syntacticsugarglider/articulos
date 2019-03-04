@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>
+        {{ metadata.clone().name.unwrap() }} {# TODO: don't clone metadata #}
+    </title>
+    <style>
+        body {
+            padding: 0;
+            margin: 0;
+        }
+
+        #navbar {
+            width: 100%;
+            z-index: 999999;
+            position: fixed;
+            background-color: white;
+            border-bottom: solid 2px grey;
+            padding: 5px;
+            height: 33px;
+            text-align: center;
+            font-family: Geneva, Tahoma, Verdana, sans-serif;
+        }
+
+        #navbar img:hover {
+            cursor: pointer;
+            border-radius: 15px;
+            background-color: #eeeeee;
+        }
+
+        #navbar #titulo {
+            user-select: none;
+            font-size: 25px;
+        }
+
+        #navbar #hogar {
+            float: left;
+            margin-left: 10px;
+        }
+
+        #navbar #engranaje {
+            float: right;
+            margin-right: 10px;
+        }
+
+        #article {
+            margin: auto;
+        }
+    </style>
+
+<body>
+    <div id="navbar">
+        <a href="index.html"><img id="hogar" src="hogar.svg" width="30px" height="30px"></a>
+        <img id="engranaje" src="engranaje.svg" width="30px" height="30px">
+        <span id="titulo">Los Millenials son Malos</span>
+    </div>
+    {{ html|safe }}
+</body>
+</head>
