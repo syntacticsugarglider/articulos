@@ -20,6 +20,9 @@ use yup_oauth2::{
     FlowType,
 };
 
+const FINAL_HTML_STYLE: &'static str = "<style>body{padding:0;margin:0;}#article{margin:auto;}#navbar{width:100%;z-index:900;position:fixed;background-color:white;border-bottom:solid 2px grey;padding:5px;height:33px;text-align:center;font-family:Geneva,Tahoma,Verdana,sans-serif;}#navbar img:hover{cursor:pointer;border-radius:15px;background-color:#eeeeee;}#navbar #titulo{user-select:none;font-size:25px;}#navbar #hogar{float:left;margin-left:10px;}#navbar #engranaje{float:right;margin-right:10px;}</style>";
+const FINAL_HTML_NAVBAR: &'static str = r#"<div id="navbar"><a href="index.html"><img id="hogar" src="hogar.svg" width="30px" height="30px"></a><img id="engranaje" src="engranaje.svg" width="30px" height="30px"><span id="titulo">Los Millenials Son Malos</span></div>"#;
+
 enum ImagePlacement {
     Default,
     FloatLeft(u8),
@@ -64,6 +67,8 @@ impl ArticuloLlevador {
     }
 
     fn get_article(self: &Self, file_id: &str) -> Result<Articulo, Box<std::error::Error>> {
+
+
         let (_resp, metadata) = match self.hub.files().get(file_id).doit() {
             Ok(m) => m,
             Err(e) => return Err(Box::new(e)),
@@ -72,10 +77,12 @@ impl ArticuloLlevador {
             Ok(f) => f,
             Err(e) => return Err(Box::new(e)),
         };
-        let mut html = String::new();
-        file.read_to_string(&mut html)?;
+        let mut article_html = String::new();
+        file.read_to_string(&mut article_html)?;
 
-        Ok(Articulo::new(html, metadata))
+        Ok(Articulo::new(article_html
+            .replace("<body", "<body><div id=\"article\"")
+            .replace("</body>", "</div></body>"), metadata))
     }
 }
 
@@ -91,7 +98,7 @@ impl Articulo {
 
     fn set_image_styles(self: &mut Self, image_styles: Vec<ImagePlacement>) {
         lazy_static! {
-            static ref IMG_STYLE_RE: Regex = Regex::new("display: inline-block;").unwrap(); // TODO: get better regex
+            static ref IMG_STYLE_RE: Regex = Regex::new("display: inline-block;").unwrap(); // TODO: get real regex
         }
         for style in image_styles {
             self.html = self.html.replacen(
@@ -111,14 +118,13 @@ impl Articulo {
         }
     }
 
-    fn set_width(self: &mut Self, width: u64) {
-        lazy_static! {
-            static ref BODY_WIDTH_RE: Regex = Regex::new("max-width:[0-9]+pt;").unwrap(); // TODO: get better regex
-        }
-        self.html = self.html.replace(
-            &BODY_WIDTH_RE.to_owned(),
-            format!("max-width:{:?}pt", width).as_str(),
-        );
+    fn generate_full_html(self: &Self) -> String {
+        let mut add_navbar = "<body>".to_string();
+        add_navbar.push_str(&FINAL_HTML_NAVBAR);
+        let mut full_html = self.html
+            .replace("<body>", add_navbar.as_str());
+        full_html.push_str(&FINAL_HTML_STYLE);
+        return full_html;
     }
 }
 
