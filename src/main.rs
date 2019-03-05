@@ -83,7 +83,7 @@ impl ArticuloLlevador {
         file.read_to_string(&mut article)?;
 
         let caps = &ARTICLE_RE.captures(article.as_str()).expect("hello");
-        let mut html = String::from(r#"<div id="article" "#);
+        let mut html = String::from(r#"<div id="article""#);
         html.push_str(
             caps.name("html")
                 .expect("Google export returned bad html")
@@ -100,11 +100,12 @@ impl ArticuloLlevador {
 struct Articulo {
     html: String,
     metadata: google_drive3::File,
+    url: String,
 }
 
 impl Articulo {
     fn new(html: String, metadata: google_drive3::File) -> Articulo {
-        Articulo { html, metadata }
+        Articulo { html, metadata, url: String::from("index.html") }
     }
 
     fn set_image_styles(self: &mut Self, image_styles: Vec<ImagePlacement>) {
@@ -128,6 +129,12 @@ impl Articulo {
             );
         }
     }
+}
+
+#[derive(Template)]
+#[template(path = "index.html")]
+struct Articulos {
+    articles: Vec<Articulo>,
 }
 
 fn main() {

@@ -17,6 +17,7 @@
     width: 100%;
     position: fixed;
     border-bottom: solid 2px grey;
+    background-color: white;
     padding: 5px;
     height: 33px;
     text-align: center;
@@ -43,6 +44,32 @@
     float: right;
     margin-right: 10px;
   }
+
+  #previews {
+    padding-top: 70px;
+  }
+
+  .preview {
+    width: 400px;
+    height: 275px;
+    margin-left: 10px;
+    border: grey solid 1px;
+    overflow: hidden;
+    display: inline-block;
+  }
+
+  .preview div:hover {
+    background-color: #f9f9f9 !important;
+    cursor: pointer;
+  }
+
+  .preview * {
+    padding: 5px 5px !important;
+  }
+
+  a:link, a:visited, a:hover, a:active {
+    text-decoration: none;
+  }
 </style>
 
 <body>
@@ -50,6 +77,13 @@
     <a href="index.html"><img id="hogar" src="hogar.svg" width="30px" height="30px"></a>
     <img id="engranaje" src="engranaje.svg" width="30px" height="30px">
     <span id="titulo">Los Millenials Son Malos</span>
+  </div>
+  <div id="previews">
+      {% for article in articles %}
+        <a href="{{ article.url }}"><div class="preview">
+            {{ article.html|safe }}
+        </div></a>
+      {% endfor %}
   </div>
 </body>
 </html>
